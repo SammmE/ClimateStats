@@ -1,0 +1,23 @@
+.graphContainer {
+    display: inline-block;
+    overflow-x: hidden;
+    width: 82.5vw;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+}
+
+.graph {
+    order: 1;
+    flex-grow: 2;
+}
+
+.predict {
+    order: 2;
+    flex-grow: 1;
+    align-items: center;
+    justify-content: center;
+    align-items: center;
+}
+
+
