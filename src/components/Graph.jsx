@@ -7,6 +7,7 @@ import {
     MenuItem,
     Typography,
     TextField,
+    Button,
 } from "@mui/material";
 
 import { LineGraph } from "./LineGraph";
@@ -26,16 +27,35 @@ const lightTheme = createTheme({
 });
 
 export const Graph = ({ theme }) => {
-    const [line, setLine] = React.useState(true);
+    const [labels, setLabels] = React.useState(
+        ClimateData.data.map((data) => data.year)
+    );
+
+    const [data, setData] = React.useState(
+        ClimateData.data.map((data) => data.co2)
+    );
+    const [pred, setPred] = React.useState();
     const [mode, setMode] = React.useState(1);
     const [ans, setAns] = React.useState(0);
+
+    var graphData = {
+        labels: labels,
+        datasets: [
+            {
+                label: "Carbon Dioxide Levels(ppm)",
+                data: data,
+                backgroundColor: [theme.palette.primary.dark],
+                borderColor: theme.palette.secondary.dark,
+            },
+        ],
+    };
 
     const predictCO2FromYear = (year) => {
         return 1.62993881 * year - 2886.54746503;
     };
 
     const predictYearFromPpm = (co2) => {
-        return Math.round((co2 + 2886.54746503) / 1.62993881);
+        return Math.round((parseInt(co2) + 2886.54746503) / 1.62993881);
     };
 
     const getPrediction = (val) => {
@@ -46,17 +66,38 @@ export const Graph = ({ theme }) => {
         }
     };
 
-    const [graphData, setGraphData] = React.useState({
-        labels: ClimateData.data.map((data) => data.year),
-        datasets: [
-            {
-                label: "Carbon Dioxide Levels(ppm)",
-                data: ClimateData.data.map((data) => data.co2),
-                backgroundColor: [theme.palette.primary.dark],
-                borderColor: theme.palette.secondary.dark,
-            },
-        ],
-    });
+    const addYear = (year) => {
+        var tempLabels = [...labels];
+        tempLabels.push(year);
+        setLabels(tempLabels);
+    };
+
+    const addPpm = (ppm) => {
+        var tempData = [...data];
+        tempData.push(ppm);
+        setData(tempData);
+    };
+
+    const reloadGraph = () => {
+        graphData = {
+            labels: labels,
+            datasets: [
+                {
+                    label: "Carbon Dioxide Levels(ppm)",
+                    data: ClimateData.data.map((data) => data.co2),
+                    backgroundColor: [theme.palette.primary.dark],
+                    borderColor: theme.palette.secondary.dark,
+                },
+            ],
+        };
+    };
+
+    const resetGraph = () => {
+        setData(ClimateData.data.map((data) => data.co2));
+        setLabels(ClimateData.data.map((data) => data.year));
+
+        reloadGraph();
+    };
 
     return (
         <div className="graphContainer">
@@ -68,7 +109,6 @@ export const Graph = ({ theme }) => {
                     value={mode}
                     label="mode"
                     onChange={(event) => {
-                        console.log(event.target.value);
                         setMode(event.target.value);
                     }}
                     variant="filled"
@@ -96,10 +136,46 @@ export const Graph = ({ theme }) => {
                     variant="filled"
                     placeholder={mode === 1 ? "Enter CO2 ppm" : "Enter year"}
                     onChange={(event) => {
-                        console.log(event.target.value);
+                        setPred(event.target.value);
                         setAns(getPrediction(event.target.value));
                     }}
                 />
+                <Button
+                    sx={{
+                        marginTop: "20px",
+                        marginRight: "2.5px",
+                    }}
+                    variant="outlined"
+                    onClick={() => {
+                        var res = getPrediction(pred);
+                        var year;
+                        var ppm;
+                        if (mode === 1) {
+                            year = res;
+                            ppm = predictCO2FromYear(year);
+                        } else {
+                            ppm = res;
+                            year = predictYearFromPpm(ppm);
+                        }
+                        addPpm(ppm);
+                        addYear(year);
+                        reloadGraph();
+                    }}
+                >
+                    Graph It!
+                </Button>
+                <Button
+                    sx={{
+                        marginTop: "20px",
+                        marginLeft: "2.5px",
+                    }}
+                    variant="outlined"
+                    onClick={() => {
+                        resetGraph();
+                    }}
+                >
+                    Reset Graph
+                </Button>
                 <Typography>&darr;</Typography>
                 <Typography>{ans}</Typography>
             </div>
